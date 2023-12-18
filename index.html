@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Socket.io Chat</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    #container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+      margin-top: 50px;
+    }
+
+    #username-container {
+      text-align: center;
+    }
+
+    #join-btn {
+      background-color: #4caf50;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+    }
+
+    #chat-container {
+      display: none;
+    }
+
+    #messages {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+    }
+
+    #form {
+      margin-top: 10px;
+      display: flex;
+    }
+
+    #m {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-right: 5px;
+    }
+
+    button {
+      background-color: #2196F3;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .join-message {
+      color: #4caf50;
+    }
+
+    .leave-message {
+      color: #f44336;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="username-container">
+      <label for="username">Enter your name:</label>
+      <input type="text" id="username" autocomplete="off" />
+      <button id="join-btn">Join</button>
+    </div>
+    <div id="chat-container">
+      <ul id="messages"></ul>
+      <form id="form" action="">
+        <input id="m" autocomplete="off" placeholder="Type your message..." />
+        <button>Send</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <script>
+    $(function () {
+      var socket = io();
+      var username;
+
+      $('#join-btn').click(function() {
+        username = $('#username').val();
+        if (username.trim() !== '') {
+          socket.emit('set username', username);
+          $('#username-container').hide();
+          $('#chat-container').show();
+        }
+      });
+
+      $('form').submit(function(e){
+        e.preventDefault();
+        var message = $('#m').val();
+        if (message.trim() !== '') {
+          socket.emit('chat message', `${username}: ${message}`);
+          $('#m').val('');
+        }
+        return false;
+      });
+
+      socket.on('chat message', function(msg){
+        var $message = $('<li>').text(msg);
+        if (msg.includes('has joined the chat')) {
+          $message.addClass('join-message');
+        } else if (msg.includes('has left the chat')) {
+          $message.addClass('leave-message');
+        }
+        $('#messages').append($message);
+      });
+    });
+  </script>
+</body>
+</html>
